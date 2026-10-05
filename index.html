@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>O Escalador</title>
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <div id="crosshair"></div>
+
+  <div id="hud" class="hidden">
+    <div id="hud-top">
+      <div class="hud-box">Altura: <span id="hud-height">0</span> m</div>
+      <div class="hud-box">Pontos: <span id="hud-score">0</span></div>
+      <div class="hud-box" id="hud-timer-box">Tempo: <span id="hud-timer">90</span>s</div>
+    </div>
+    <div id="hud-checkpoint" class="hidden">Checkpoint alcançado! +<span id="hud-checkpoint-pts"></span></div>
+  </div>
+
+  <div id="overlay-menu" class="overlay">
+    <div class="panel">
+      <h1>🧗 O Escalador</h1>
+      <p class="subtitle">Suba a torre, colete os pontos de apoio e chegue ao topo antes que o tempo acabe.</p>
+      <div class="field">
+        <label for="player-name">Seu nome</label>
+        <input id="player-name" type="text" maxlength="16" placeholder="Jogador" />
+      </div>
+      <button id="btn-start" class="btn btn-primary">Clique para começar</button>
+      <button id="btn-show-ranking" class="btn">Ver ranking</button>
+      <div class="controls-help">
+        <strong>Controles</strong>
+        <ul>
+          <li><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> mover</li>
+          <li><kbd>MOUSE</kbd> olhar</li>
+          <li><kbd>ESPAÇO</kbd> pular</li>
+          <li><kbd>ESC</kbd> pausar</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div id="overlay-pause" class="overlay hidden">
+    <div class="panel">
+      <h2>Pausado</h2>
+      <button id="btn-resume" class="btn btn-primary">Continuar</button>
+      <button id="btn-quit" class="btn">Sair para o menu</button>
+    </div>
+  </div>
+
+  <div id="overlay-end" class="overlay hidden">
+    <div class="panel">
+      <h2 id="end-title">Fim de jogo</h2>
+      <p id="end-message"></p>
+      <div class="end-stats">
+        <div>Pontuação final: <strong id="end-score">0</strong></div>
+        <div>Altura alcançada: <strong id="end-height">0</strong> m</div>
+        <div>Tempo: <strong id="end-time">0</strong>s</div>
+      </div>
+      <button id="btn-save-score" class="btn btn-primary">Salvar no ranking</button>
+      <button id="btn-retry" class="btn">Tentar de novo</button>
+      <button id="btn-end-menu" class="btn">Menu</button>
+    </div>
+  </div>
+
+  <div id="overlay-ranking" class="overlay hidden">
+    <div class="panel">
+      <h2>🏆 Ranking</h2>
+      <ol id="ranking-list"></ol>
+      <p id="ranking-empty" class="hidden">Nenhuma pontuação registrada ainda.</p>
+      <button id="btn-ranking-close" class="btn btn-primary">Voltar</button>
+      <button id="btn-ranking-clear" class="btn btn-danger">Limpar ranking</button>
+    </div>
+  </div>
+
+  <div id="blocker" class="hidden"></div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

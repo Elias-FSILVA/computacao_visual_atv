@@ -1,0 +1,245 @@
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  background: #0b0f1a;
+  color: #f1f1f1;
+}
+
+canvas {
+  display: block;
+}
+
+#crosshair {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 0 2px #000;
+  pointer-events: none;
+  z-index: 5;
+}
+
+#hud {
+  position: absolute;
+  top: 16px;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  z-index: 4;
+  pointer-events: none;
+}
+
+#hud-top {
+  display: flex;
+  gap: 12px;
+}
+
+.hud-box {
+  background: rgba(10, 14, 24, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+#hud-timer-box.warning {
+  background: rgba(180, 30, 30, 0.85);
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+#hud-checkpoint {
+  background: rgba(40, 160, 90, 0.9);
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-weight: 700;
+  animation: fadeUp 1.6s ease forwards;
+}
+
+@keyframes fadeUp {
+  0% { opacity: 0; transform: translateY(6px); }
+  15% { opacity: 1; transform: translateY(0); }
+  75% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-8px); }
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 50% 30%, rgba(30, 40, 70, 0.85), rgba(5, 7, 14, 0.95));
+  z-index: 10;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.panel {
+  width: min(420px, 90vw);
+  max-height: 85vh;
+  overflow-y: auto;
+  background: rgba(18, 22, 36, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  padding: 28px 30px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.panel h1 {
+  margin: 0 0 6px;
+  font-size: 28px;
+}
+
+.panel h2 {
+  margin: 0 0 16px;
+}
+
+.subtitle {
+  color: #b7bfd6;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+.field {
+  margin-bottom: 16px;
+  text-align: left;
+}
+
+.field label {
+  display: block;
+  font-size: 12px;
+  color: #9aa3bd;
+  margin-bottom: 4px;
+}
+
+.field input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: #0d1120;
+  color: #fff;
+  font-size: 14px;
+}
+
+.btn {
+  display: block;
+  width: 100%;
+  padding: 12px 16px;
+  margin-top: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #ff7a3c, #ff4d6d);
+  border: none;
+}
+
+.btn-primary:hover {
+  filter: brightness(1.1);
+}
+
+.btn-danger {
+  background: rgba(180, 40, 40, 0.5);
+}
+
+.controls-help {
+  margin-top: 22px;
+  text-align: left;
+  font-size: 13px;
+  color: #c3c9de;
+}
+
+.controls-help ul {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0;
+}
+
+.controls-help li {
+  margin-bottom: 6px;
+}
+
+kbd {
+  display: inline-block;
+  min-width: 18px;
+  padding: 2px 6px;
+  margin-right: 6px;
+  border-radius: 4px;
+  background: #272e45;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-size: 11px;
+  text-align: center;
+}
+
+.end-stats {
+  margin: 14px 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+  color: #d6dbee;
+}
+
+#ranking-list {
+  text-align: left;
+  padding-left: 24px;
+  margin: 0 0 16px;
+  font-size: 14px;
+}
+
+#ranking-list li {
+  margin-bottom: 6px;
+}
+
+#ranking-list li .rk-name {
+  font-weight: 700;
+}
+
+#ranking-list li .rk-meta {
+  color: #9aa3bd;
+  font-size: 12px;
+}
+
+#blocker {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  cursor: pointer;
+}
