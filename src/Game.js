@@ -136,8 +136,16 @@ export class Game {
     this.dom.rankingEmpty.classList.add("hidden");
     for (const entry of entries) {
       const li = document.createElement("li");
-      li.innerHTML = `<span class="rk-name">${entry.name}</span> — ${entry.score} pts
-        <div class="rk-meta">${entry.result === "win" ? "Chegou ao topo" : "Não terminou"} · ${entry.time}s · ${entry.date}</div>`;
+
+      const name = document.createElement("span");
+      name.className = "rk-name";
+      name.textContent = entry.name;
+
+      const meta = document.createElement("div");
+      meta.className = "rk-meta";
+      meta.textContent = `${entry.result === "win" ? "Chegou ao topo" : "Não terminou"} · ${entry.time}s · ${entry.date}`;
+
+      li.append(name, ` — ${entry.score} pts`, meta);
       this.dom.rankingList.appendChild(li);
     }
   }
