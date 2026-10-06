@@ -10,6 +10,15 @@ const PLAYER_HEIGHT = 1.7;
 const PLAYER_RADIUS = 0.35;
 const COLUMN_RADIUS = 1.9 + PLAYER_RADIUS;
 
+const HAND_BASE_Y = -0.28;
+const HAND_BASE_Z = -0.35;
+const WALL_CONTACT_MARGIN = 0.6;
+
+const SPRINT_RAMP_TIME = 0.8;
+const SPRINT_DECAY_TIME = 0.9;
+const SPRINT_SPEED_MULT = 3;
+const SPRINT_FOV_BOOST = 18;
+
 const HANDLED_CODES = new Set([
   "KeyW",
   "KeyA",
@@ -33,15 +42,50 @@ export class Player {
     this.grounded = false;
     this.fellOff = false;
 
-    this.input = { forward: false, back: false, left: false, right: false, jump: false };
+    this.input = { forward: false, back: false, left: false, right: false, jump: false, sprint: false };
     this.maxHeightReached = this.position.y;
+    this._baseFov = camera.fov;
+    this._sprintFactor = 0;
 
     this._forward = new THREE.Vector3();
     this._right = new THREE.Vector3();
     this._worldUp = new THREE.Vector3(0, 1, 0);
 
+    this._handTime = 0;
+    this._buildHands();
+
     this._bindKeys();
     this._syncCamera();
+  }
+
+  _buildHands() {
+    const mat = new THREE.MeshStandardMaterial({ color: 0xcf9d7c, roughness: 0.6 });
+
+    const makeArm = (side) => {
+      const arm = new THREE.Group();
+
+      const forearm = new THREE.Mesh(new THREE.CapsuleGeometry(0.045, 0.32, 4, 8), mat);
+      forearm.rotation.x = -Math.PI / 2.4;
+      forearm.position.set(0, 0.04, -0.16);
+      arm.add(forearm);
+
+      const hand = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 8), mat);
+      hand.position.set(0, -0.02, -0.34);
+      hand.scale.set(1, 0.85, 1.3);
+      arm.add(hand);
+
+      arm.position.set(side * 0.22, HAND_BASE_Y, HAND_BASE_Z);
+      arm.rotation.z = side * 0.15;
+      return arm;
+    };
+
+    this.leftArm = makeArm(-1);
+    this.rightArm = makeArm(1);
+
+    const handGroup = new THREE.Group();
+    handGroup.add(this.leftArm, this.rightArm);
+    handGroup.frustumCulled = false;
+    this.camera.add(handGroup);
   }
 
   _bindKeys() {
@@ -80,6 +124,10 @@ export class Player {
       case "Space":
         this.input.jump = pressed;
         break;
+      case "ShiftLeft":
+      case "ShiftRight":
+        this.input.sprint = pressed;
+        break;
     }
   }
 
@@ -115,14 +163,24 @@ export class Player {
     if (this.input.back) wish.sub(this._forward);
     if (this.input.right) wish.add(this._right);
     if (this.input.left) wish.sub(this._right);
-    if (wish.lengthSq() > 0) wish.normalize();
+    const wantsMove = wish.lengthSq() > 0;
+    if (wantsMove) wish.normalize();
 
-    this.velocity.x += wish.x * MOVE_ACCEL * delta;
-    this.velocity.z += wish.z * MOVE_ACCEL * delta;
+    const sprinting = this.input.sprint && wantsMove && this.grounded;
+    this._sprintFactor = sprinting
+      ? Math.min(1, this._sprintFactor + delta / SPRINT_RAMP_TIME)
+      : Math.max(0, this._sprintFactor - delta / SPRINT_DECAY_TIME);
+
+    const sprintBoost = 1 + this._sprintFactor * (SPRINT_SPEED_MULT - 1);
+    const currentMaxSpeed = MAX_SPEED * sprintBoost;
+    const currentAccel = MOVE_ACCEL * sprintBoost;
+
+    this.velocity.x += wish.x * currentAccel * delta;
+    this.velocity.z += wish.z * currentAccel * delta;
 
     const horizSpeed = Math.hypot(this.velocity.x, this.velocity.z);
-    if (horizSpeed > MAX_SPEED) {
-      const scale = MAX_SPEED / horizSpeed;
+    if (horizSpeed > currentMaxSpeed) {
+      const scale = currentMaxSpeed / horizSpeed;
       this.velocity.x *= scale;
       this.velocity.z *= scale;
     }
@@ -163,6 +221,48 @@ export class Player {
     }
 
     this._syncCamera();
+    this._updateHands(delta, horizSpeed);
+    this._updateSpeedFov();
+  }
+
+  _updateSpeedFov() {
+    this.camera.fov = this._baseFov + this._sprintFactor * SPRINT_FOV_BOOST;
+    this.camera.updateProjectionMatrix();
+  }
+
+  _updateHands(delta, horizSpeed) {
+    this._handTime += delta;
+
+    // Nenhuma mecânica de escalada ainda: usamos a proximidade da coluna
+    // central como "mão na parede" provisória para simular o alcance.
+    const distToColumn = Math.hypot(this.position.x, this.position.z);
+    const touchingWall = distToColumn < COLUMN_RADIUS + WALL_CONTACT_MARGIN;
+
+    let targetLY = HAND_BASE_Y;
+    let targetLZ = HAND_BASE_Z;
+    let targetRY = HAND_BASE_Y;
+    let targetRZ = HAND_BASE_Z;
+    let lerpSpeed = 6;
+
+    if (touchingWall) {
+      const cycle = this._handTime * 3.2;
+      targetLY = HAND_BASE_Y + Math.sin(cycle) * 0.07;
+      targetLZ = HAND_BASE_Z - Math.max(0, Math.sin(cycle)) * 0.1;
+      targetRY = HAND_BASE_Y + Math.sin(cycle + Math.PI) * 0.07;
+      targetRZ = HAND_BASE_Z - Math.max(0, Math.sin(cycle + Math.PI)) * 0.1;
+      lerpSpeed = 10;
+    } else if (this.grounded && horizSpeed > 0.3) {
+      const cycle = this._handTime * 9;
+      targetLY = HAND_BASE_Y + Math.sin(cycle) * 0.025;
+      targetRY = HAND_BASE_Y + Math.sin(cycle + Math.PI) * 0.025;
+      lerpSpeed = 10;
+    }
+
+    const t = Math.min(1, delta * lerpSpeed);
+    this.leftArm.position.y += (targetLY - this.leftArm.position.y) * t;
+    this.leftArm.position.z += (targetLZ - this.leftArm.position.z) * t;
+    this.rightArm.position.y += (targetRY - this.rightArm.position.y) * t;
+    this.rightArm.position.z += (targetRZ - this.rightArm.position.z) * t;
   }
 
   _resolveColumn() {
